@@ -8,13 +8,16 @@ from datetime import datetime
 import glob
 import contextlib
 import os
-
+#find the current time for datestamping
 current_time = datetime.now()
-  
+#set start time to a timestamp
 stime_stamp = current_time.timestamp()
+#initialise some variables for the process time calcualtion
 start= time.time()
 cur_iter=0
 max_iter=0
+
+#I can't remember where I found this code, just  makes the time left and estimated finish time. Might remove it
 def calcProcessTime(starttime, cur_iter, max_iter):
 
     telapsed = time.time() - starttime
@@ -30,9 +33,12 @@ def calcProcessTime(starttime, cur_iter, max_iter):
 ###SET TO 1 to enable gif generation, this dramatically slows down the process, not recommended for large maps
 animation=1
 ###
+##Clear the working folder as it will have old parts of the gif maker
 files = glob.glob('working/*')
 for f in files:
          os.remove(f)
+
+##two subroutines to merge images together. hmerge does side by side and vmerge does one on top of the other         
 def hmerge_images(file1, file2):
     """Merge two images into one, displayed side by side
     :param file1: path to first image file
@@ -73,39 +79,78 @@ def vmerge_images(file1, file2):
     result.paste(im=image2, box=(0,height1))
     return result
 
-
-
-#Generate Variables
-
-
-
-
-#tile number is index, options is value
+#
+def printtiles():
+        print("Tiles")
+        for xyz in tiles:
+                print(xyz)
+        xyz=0
+def printoptions():
+        print("Options")
+        for xyz in options:
+                print(xyz)
+        xyz=0        
+#2d array to hold the allowed relationships from tiles. The index of the array is the tile number and the list is what tiles it can connect to
 reftable = [[],[1,2,3,5],[1,2,3],[1,2,3],[4,5],[1,4,5]]
+#2d array used to choose what tile should be used, multiple of the same entry weighs the program to choose certain tiles more often
 weighttable= [[],[1,2,3,5,5,5],[1,1,2,2,3],[1,1,2,1,3],[4,5,5],[1,4,5,1,1,1]]
+#load the seed.csv file into a var "lis" (pulls them as floats)
 with open("seed.csv", newline='') as file:
     lis = list(csv.reader(file, quoting = csv.QUOTE_NONNUMERIC))
 
-
-
+#loads the contents of lis into tiles as ints
 tiles=lis
 for i in range(len(lis)):
         for j in range(len(lis[0])):
                 tiles[i][j]=int(lis[i][j])
                
+#defines the grid height and width
 
-gridheight=len(tiles)
-gridwidth=len(tiles[0])
+
+        
+gridwidth=len(tiles)
+##print("gridwidth",gridwidth)
+gridheight=len(tiles[0])
+##print("gridheight",gridheight)
+
+##if the tiles grid is empty then set the middle cell to 1, this should be changed to be more random
+if sum(x.count(0) for x in tiles) == gridheight*gridwidth:
+        tiles[1][1]=1
+
 
 options=copy.deepcopy(tiles)
 
 
-for i in range(len(options)):
-        for j in range(len(options)):
-                if options[i][j]== 0:
-                      options[i][j] = len(reftable)-1 
-                else:
-                        options[i][j]=0
+x=0
+y=0
+for i in options:
+##        printoptions()
+##        printtiles()
+        for j in i:
+##                
+##                print("i",i,"/",len(options))
+##                print("j",j,"/",len(i))
+##                
+##                print("j",j)
+##                print("x",x)
+##                print("y",y)
+                if tiles[y][x] == 0:
+                        options[y][x] = len(reftable)-1
+                        
+                elif tiles[y][x] != 0:
+                        options[y][x]=0
+                        print("found")
+                        printoptions
+                        
+                x+=1
+        x=0        
+        y+=1        
+        
+x=0
+y=0
+
+
+        
 for i in options:
         i[0]=0
         i[gridheight-1]=0
@@ -118,8 +163,6 @@ for i in tiles:
 for j in range(len(tiles[0])):
         tiles[0][j]=0
         tiles[gridwidth-1][j]=0
-if sum(x.count(0) for x in tiles) == gridheight*gridwidth:
-        tiles[gridheight//2][gridwidth//2]=1
 
 
 
@@ -132,13 +175,15 @@ for z in range (gridheight*gridwidth):
         y=0
         for j in tiles:
             for i in j:
-                if tiles[x][y] != 0:
+                    
+                
+                if tiles[y][x] != 0:
 ##                               print(tiles[x][y])
 ##                               print("if len(reftable[tiles[", x, "][", y, "]]) < options[", x, "-1][", y, "] : options[", x, "-1][", y, "] = len(reftable[tiles[", x, "][", y, "]]))")
-                               if len(reftable[tiles[x][y]]) < options[x-1][y] : options[x-1][y] = len(reftable[tiles[x][y]])
-                               if len(reftable[tiles[x][y]]) < options[x][y-1] : options[x][y-1] = len(reftable[tiles[x][y]])
-                               if len(reftable[tiles[x][y]]) < options[x+1][y] : options[x+1][y] = len(reftable[tiles[x][y]])
-                               if len(reftable[tiles[x][y]]) < options[x][y+1] : options[x][y+1] = len(reftable[tiles[x][y]])
+                               if len(reftable[tiles[y][x]]) < options[y-1][x] : options[y-1][x] = len(reftable[tiles[y][x]])
+                               if len(reftable[tiles[y][x]]) < options[y][x-1] : options[y][x-1] = len(reftable[tiles[y][x]])
+                               if len(reftable[tiles[y][x]]) < options[y+1][x] : options[y+1][x] = len(reftable[tiles[y][x]])
+                               if len(reftable[tiles[y][x]]) < options[y][x+1] : options[y][x+1] = len(reftable[tiles[y][x]])
 
                 x+=1
             y+=1
@@ -151,7 +196,7 @@ for z in range (gridheight*gridwidth):
 ##        for j in tiles:
 ##                print (j)
 
-      #  print("Options-----------")
+#Searches the options file see if there are any further steps, if not then it finishes the generation
         allzero=0
         for k in options:
 ##                print(k)
@@ -164,26 +209,40 @@ for z in range (gridheight*gridwidth):
 
         coords=[]
         lowest=99999999
+
+        
 ## FIND LOWEST Option
 
         for j in options:
+##                print("options",j,"tiles  ",tiles[y])
+                
                 for i in j:
-
-                        if options[x][y] < lowest and options[x][y] != 0:
+                        
+                        
+                        tgtcell=options[y][x]
+                        if options[y][x] < lowest and options[y][x] != 0:
                                 coords=[]
-                                lowest = options[x][y]
-                        if options[x][y] == lowest and options[x][y] != 0:
-                                coords.append([x,y])                          
+                                lowest = options[y][x]
+                        if options[y][x] == lowest and options[y][x] != 0:
+                                coords.append([y,x])                          
                                 
                                
                         x+=1
                 y+=1
                 x=0
+##        print(coords)
         x=0
         y=0
+        
 ##        print(coords)
         ntile=random.choice(coords)
-        #print(ntile)
+##
+##        printoptions()
+##        printtiles()
+##     
+
+
+##        print(ntile)
         neighbours=[tiles[ntile[0]][ntile[1]-1], tiles[ntile[0]-1][ntile[1]] , tiles[ntile[0]+1][ntile[1]] , tiles[ntile[0]][ntile[1]+1]]
 ##        print(neighbours)
         neighbouroptions=[]
@@ -204,7 +263,7 @@ for z in range (gridheight*gridwidth):
             if neighbouroptions[j] != 0 and neighbouroptions[j] == tgtind:
                         indices.append(j)
 
-##        print(indices)
+    
         i=random.choice(indices)
         tiles[ntile[0]][ntile[1]]=random.choice(weighttable[neighbours[i]])
         options[ntile[0]][ntile[1]]=0
