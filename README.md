@@ -3,7 +3,7 @@ Program to generate randomised region maps from a list of tiles. Uses wave funct
 
 To run the mapmaker
 
-First run seedgenerator.py which takes a height and width and makes a csv which is just 0s in that dimension WARNING: currently the program does not like non square maps, I will fix this later, something in the coords system is getting x and y mixed up
+First run seedgenerator.py which takes a height and width and makes a csv which is just 0s in that dimension
 
 If you want to manually seed certain elements into the map edit the csv and add numbers according to what you want (/tileimgs/ has te tiles the program uses and their number code, so if you want a region of mountain replace its 0s with 3s)
 
