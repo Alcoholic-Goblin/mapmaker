@@ -23,6 +23,8 @@ The program has only been tested with 16x16 pixel tiles. It should work with any
 
 TODO
 
+Hide tile 0 from editor
+
 Tidy code and comment
 
 Optimise where possible, especially gif creation as its a dirty hack at the moment.
